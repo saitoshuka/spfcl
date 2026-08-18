@@ -1,0 +1,48 @@
+# Reproducible compatibility envelope for the pinned TRIBE v2 snapshot.
+# Torch is installed separately from the CUDA/CPU wheel index selected by
+# scripts/bootstrap_remote.sh; these constraints keep the later editable
+# installs from silently replacing it.
+torch==2.6.0
+torchvision==0.21.0
+numpy==2.2.6
+
+# Exact upstream requirements.
+exca==0.5.20
+neuralset==0.0.2
+neuraltrain==0.0.2
+x-transformers==1.27.20
+lightning==2.6.5
+torchmetrics==1.9.0
+pydantic==2.12.5
+huggingface_hub==0.36.2
+
+# TRIBE v2 uses the V-JEPA2 Transformers API.  Upstream leaves this unpinned,
+# but a future Transformers major release is not an auditable experiment base.
+transformers==4.53.2
+
+# Resolved data/video runtime used by the exact-dependency integration smoke.
+# Pinning these direct scientific dependencies makes a fresh server rebuild the
+# same loaders, projections, dataframe semantics, and video decoding wrapper.
+PyYAML==6.0.3
+requests==2.34.2
+boto3==1.43.73
+botocore==1.43.73
+s3transfer==0.19.2
+nibabel==5.4.2
+nilearn==0.14.0
+mne==1.12.1
+mne-bids==0.19.0
+pandas==3.0.5
+scipy==1.18.0
+scikit-learn==1.8.0
+pyarrow==25.0.1
+polars==1.43.2
+moviepy==2.2.1
+imageio==2.37.4
+imageio-ffmpeg==0.6.0
+julius==0.2.8
+einops==0.8.2
+
+# Test/lint gates executed by the remote bootstrap workflow.
+pytest==9.1.1
+ruff==0.16.3

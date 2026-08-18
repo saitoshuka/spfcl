@@ -1,0 +1,26 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Large or generated assets must stay on the remote data volume.
+/data/
+/cache/
+/outputs/
+/artifacts/
+*.ckpt
+*.pt
+*.pth
+*.npy
+*.npz
+*.func.gii
+*.nii
+*.nii.gz
+
+.env
+wandb/
+slurm-*.out
+slurm-*.err

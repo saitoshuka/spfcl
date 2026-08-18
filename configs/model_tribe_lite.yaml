@@ -1,0 +1,15 @@
+model:
+  hidden: 384
+  depth: 4
+  heads: 6
+  ff_mult: 4
+  dropout: 0.1
+  low_rank_head: 128
+  n_subjects: 4
+  n_outputs: 360
+  input_hz: 2
+  output_hz: 1
+  window_seconds: 100
+  subject_dropout: 0.1
+  subject_embedding: false
+  modality_dropout: 0.0

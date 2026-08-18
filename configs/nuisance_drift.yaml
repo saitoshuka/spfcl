@@ -1,0 +1,16 @@
+nuisance:
+  # This is a chunk-synchronous, input-identifiable positive control. It is not
+  # claimed to reproduce arbitrary scanner drift.
+  amplitude: 0.23
+  chunk_seconds: 100
+  sample_hz: 1.0
+  # Match the fMRI extractor's +5 s target offset: model windows consume
+  # nuisance indices 5:105, 105:205, ... as complete canonical chunks.
+  phase_offset_seconds: 5.0
+  cycles: [1, 2]
+  temporal_jitter: 0.3
+  spatial_jitter: 0.25
+  seed: 20260818
+  # Empty for the single-amplitude audit. The causal matrix supplies three
+  # balanced, position-identifiable strata inside every B chunk.
+  dose_levels: []
