@@ -1,0 +1,24 @@
+automatic_stage_outputs:
+  clean_test:
+    heads: [known_subject, group]
+    metrics: [pearson_fisher_z, mse, r2]
+    equal_weight: [subject]
+  scientific_probe:
+    source: bold_moments_session1_localizer
+    modality: silent_video
+    heads: [known_subject, group]
+    primary_contrasts: [faces_vs_bodies, scenes_vs_objects]
+    metrics: [contrast_map_correlation, contrast_effect_mae, contrast_effect_rmse]
+offline_analysis_api:
+  representation_taps: [projected, transformer, shared_bottleneck, head_output_2hz, output]
+  nuisance:
+    - grouped_conditional_probe
+    - projection_strength
+    - paired_swap_effect
+    - orthogonal_subspace_ablation
+    - dose_response_slope
+  roi_and_lateralization_metrics_require_preregistered_roi_masks: true
+statistics:
+  unit: subject
+  seeds_are_repeated_runs_not_independent_samples: true
+  phase1_claim: mechanism_screening_and_effect_sizes

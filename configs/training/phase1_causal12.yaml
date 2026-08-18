@@ -1,0 +1,150 @@
+schema_version: 1
+
+experiment:
+  name: bmd4_spf_nuisance_phase1
+  description: >-
+    Four-subject, video-only BOLD Moments mechanism pilot. The public TRIBE v2
+    joint checkpoint is evaluation-only and must never initialize these runs.
+  output_root: ${SPFCL_OUTPUT}/phase1
+  cache_root: ${SPFCL_CACHE}
+  manifest: ${SPFCL_OUTPUT}/manifests/bmd4_manifest.jsonl
+
+data:
+  study: Lahner2024Bold
+  root: ${DATAPATH}/Lahner2024Bold
+  snapshot: 1.0.4
+  source_space: mni
+  subjects: [1, 2, 3, 4]
+  cortex_space: glasser360
+  input_modalities: [video]
+  input_hz: 2
+  output_hz: 1
+  window_seconds: 100
+  overlap_seconds: 0
+  # Four subjects x two training sessions out of the full 10 x 4 acquisition
+  # is exactly 20% of BOLD Moments training subject-sessions. There is no
+  # stimulus-leaking internal validation split; all stages use fixed epochs.
+  selected_subject_session_fraction_of_full_bmd: 0.20
+  # Refers to the immutable official train-vs-test stimulus boundary. There is
+  # no additional internal random split.
+  split_unit: official_stimulus_partition
+  studies:
+    A:
+      role: A
+      session: 2
+      nuisance_dose: 0.0
+    B0:
+      role: B
+      session: 3
+      nuisance_dose: 0.0
+    B_lambda:
+      role: B
+      session: 3
+      nuisance_config: configs/nuisance_drift.yaml
+      nuisance_dose_levels: [0.10, 0.23, 0.36]
+  evaluation:
+    test_sessions: [2, 3]
+    clean_test_role: clean_test
+    scientific_probe_role: probe
+    keep_test_clean: true
+
+atlas:
+  operator: ${SPFCL_CACHE}/atlas/glasser360_fsaverage5.npz
+  basis: ${SPFCL_CACHE}/atlas/glasser360_laplacian_basis.npz
+  parcel_order: left-180-then-right-180
+
+features:
+  video_model: facebook/vjepa2-vitg-fpc64-256
+  video_model_revision: 875c192b7b704b87d1e1d99345769632dd5f739a
+  video_model_sha256: f205e77aa2ade168db6b09d4bc420d156141f64ab964278a9c181a2bdf2a232b
+  video_model_provenance: ${SPFCL_CACHE}/models/spfcl-vjepa2-vitg-fpc64-256.json
+  frozen: true
+  precompute_once: true
+  keep_in_ram: false
+  cache: ${SPFCL_CACHE}/features/vjepa2
+  text: null
+  audio: null
+
+model:
+  config: configs/model_tribe_lite.yaml
+  initialization: random
+  public_joint_checkpoint: null
+  evaluate_heads: [subject, group]
+
+training:
+  epochs_per_stage: 15
+  batch_size: 8
+  gradient_accumulation: 2
+  # fp16 works on both V100 and newer GPUs; bf16 would exclude the V100 target.
+  precision: 16-mixed
+  gradient_clip_norm: 1.0
+  optimizer:
+    # Match the official release defaults so the nuisance is the intended change.
+    name: Adam
+    learning_rate: 0.0001
+    weight_decay: 0.0
+  scheduler:
+    name: OneCycleLR
+    max_learning_rate: 0.0001
+    warmup_fraction: 0.10
+  stage_boundary:
+    format: spfcl.weights
+    weights_only: true
+    reset_optimizer: true
+    reset_scheduler: true
+    reset_epoch_and_global_step: true
+    require_parent_sha256: true
+
+matrix:
+  seeds: [17, 29, 43]
+  paired_views: [B0, B_lambda]
+  require_paired_stimulus_windows: true
+  require_shared_initial_state_sha256: true
+  # The first three conditions are the core 9 runs. Replay is the optional
+  # second-priority block selected by launch_phase1_slurm.sh --include-replay.
+  # A single Slurm task records both B0 and B_lambda causal branches. In an
+  # A-first task they must fork independently from the same A-end weights-only
+  # checkpoint; optimizer, scheduler, epoch, and global-step state are reset.
+  conditions:
+    a_to_b_naive:
+      stages:
+        - {id: A, view: A, train_sessions: [2]}
+        - {id: B0, view: B0, train_sessions: [3], parent: A, pair: A_fork}
+        - id: B_lambda
+          view: B_lambda
+          train_sessions: [3]
+          parent: A
+          pair: A_fork
+    b_to_a_naive:
+      stages:
+        - {id: B0, view: B0, train_sessions: [3], pair: random_B}
+        - {id: B0_to_A, view: A, train_sessions: [2], parent: B0}
+        - {id: B_lambda, view: B_lambda, train_sessions: [3], pair: random_B}
+        - id: B_lambda_to_A
+          view: A
+          train_sessions: [2]
+          parent: B_lambda
+    offline_joint:
+      stages:
+        - {id: joint_B0, view: B0, train_sessions: [2, 3], pair: random_joint}
+        - id: joint_B_lambda
+          view: B_lambda
+          train_sessions: [2, 3]
+          pair: random_joint
+    a_to_b_replay_1pct:
+      stages:
+        - {id: A, view: A, train_sessions: [2]}
+        - id: B0_replay
+          view: B0
+          train_sessions: [2, 3]
+          parent: A
+          pair: A_replay_fork
+          replay_fraction: 0.01
+          replay_session: 2
+        - id: B_lambda_replay
+          view: B_lambda
+          train_sessions: [2, 3]
+          parent: A
+          pair: A_replay_fork
+          replay_fraction: 0.01
+          replay_session: 2

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spfcl"
+version = "0.1.0"
+description = "Low-compute scientific forgetting and nuisance consolidation experiments around TRIBE v2"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "numpy==2.2.6",
+  "PyYAML>=6.0.2",
+]
+
+[project.optional-dependencies]
+data = [
+  "boto3>=1.35",
+  "nibabel>=5.3",
+  "pandas>=2.2",
+  "scipy>=1.14",
+  "mne>=1.9",
+  "nilearn>=0.12",
+]
+dev = [
+  "pytest>=8.3",
+  "ruff>=0.11",
+]
+
+[project.scripts]
+spfcl = "spfcl.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
