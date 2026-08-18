@@ -17,6 +17,11 @@ Included:
 - core 9-job and optional 12-job Slurm arrays;
 - offline tests that do not download models or data.
 
+For research rationale, current decisions, Go/No-Go criteria, known gaps, and the
+server-agent handoff, read [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md). Codex also
+loads the repository-level [`AGENTS.md`](AGENTS.md) automatically when started from
+this Git checkout.
+
 ## 1. Sync and install on the server
 
 ```bash
